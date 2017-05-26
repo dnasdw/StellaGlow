@@ -244,7 +244,6 @@ int exportStr(u32 a_uIndex, wstring& a_sTxt, FILE* a_fp, FILE* a_fpOuter, FILE* 
 	a_sTxt = Replace(a_sTxt, L"No.", L"[No].");
 	a_sTxt = Replace(a_sTxt, L"--------------------------------------", L"[--------------------------------------]");
 	a_sTxt = Replace(a_sTxt, L"======================================", L"[======================================]");
-	a_sTxt = Replace(a_sTxt, L"\r\n", L"\n");
 	a_sTxt = Replace(a_sTxt, L'\r', L"<r>");
 	a_sTxt = Replace(a_sTxt, L'\n', L"\r\n");
 	static wregex rABIL(L"@ABIL(\\d{4})", regex_constants::ECMAScript);
