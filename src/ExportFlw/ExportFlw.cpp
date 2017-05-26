@@ -868,7 +868,7 @@ int UMain(int argc, UChar* argv[])
 						//	delete[] pFlw;
 						//	return 1;
 						//}
-						//if (j == uSize - 2 && pTxt16[j] != 0)
+						//if (j == uSize - 2 && pTxt16[j + 1] != 0)
 						//{
 						//	fclose(fpInner);
 						//	fclose(fpOuter);
