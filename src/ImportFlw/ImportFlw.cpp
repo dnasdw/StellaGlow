@@ -126,19 +126,19 @@ int importStr(u32 a_uIndex, wstring& a_sTxt, wstring& a_sOuter, wstring& a_sInne
 	static wregex rABIL(L"<ABIL(\\d{4})>", regex_constants::ECMAScript);
 	if (regex_search(sOuterStmt, rABIL))
 	{
-		sOuterStmt = regex_replace(sOuterStmt, rABIL, L"@ABIL$1");
+		sOuterStmt = regex_replace(sOuterStmt, rABIL, wstring(L"@ABIL$1"));
 	}
 	static wregex rCOL(L"<COL(\\d)>", regex_constants::ECMAScript);
 	if (regex_search(sOuterStmt, rCOL))
 	{
-		sOuterStmt = regex_replace(sOuterStmt, rCOL, L"@COL$1");
+		sOuterStmt = regex_replace(sOuterStmt, rCOL, wstring(L"@COL$1"));
 	}
 	sOuterStmt = Replace(sOuterStmt, L"</COL>", L"@COLD");
 	sOuterStmt = Replace(sOuterStmt, L"<CECN>", L"@CECN");
 	static wregex rCHAR(L"<CHAR(\\[[0-9A-Z]{5}\\])>", regex_constants::ECMAScript);
 	if (regex_search(sOuterStmt, rCHAR))
 	{
-		sOuterStmt = regex_replace(sOuterStmt, rCHAR, L"@CHAR$1");
+		sOuterStmt = regex_replace(sOuterStmt, rCHAR, wstring(L"@CHAR$1"));
 	}
 	sOuterStmt = Replace(sOuterStmt, L"<ITEM%05d>", L"@ITEM%05d");
 	sOuterStmt = Replace(sOuterStmt, L"<ITEM2424>", L"@ITEM2424");
@@ -146,7 +146,7 @@ int importStr(u32 a_uIndex, wstring& a_sTxt, wstring& a_sOuter, wstring& a_sInne
 	static wregex rSKIL(L"<SKIL(\\d{4})>", regex_constants::ECMAScript);
 	if (regex_search(sOuterStmt, rSKIL))
 	{
-		sOuterStmt = regex_replace(sOuterStmt, rSKIL, L"@SKIL$1");
+		sOuterStmt = regex_replace(sOuterStmt, rSKIL, wstring(L"@SKIL$1"));
 	}
 	sOuterStmt = Replace(sOuterStmt, L"<WSHK>", L"@WSHK");
 	sOuterStmt = Replace(sOuterStmt, L"<r>", L"\r");
@@ -445,7 +445,7 @@ int UMain(int argc, UChar* argv[])
 					return 1;
 				}
 				uSize = (uSize + 1) / 2 * 2;
-				pData1->Data[1] = sTxt16.size() * 2;
+				pData1->Data[1] = static_cast<u32>(sTxt16.size()) * 2;
 				if (sTxt16.size() <= uSize)
 				{
 					memcpy(pTxt16, sTxt16.c_str(), sTxt16.size() * 2);
@@ -507,7 +507,7 @@ int UMain(int argc, UChar* argv[])
 					return 1;
 				}
 				uSize = (uSize + 1) / 2 * 2;
-				pData1->Data[1] = sTxt16.size() * 2;
+				pData1->Data[1] = static_cast<u32>(sTxt16.size()) * 2;
 				if (sTxt16.size() <= uSize)
 				{
 					memcpy(pTxt16, sTxt16.c_str(), sTxt16.size() * 2);
@@ -569,7 +569,7 @@ int UMain(int argc, UChar* argv[])
 					return 1;
 				}
 				uSize = (uSize + 1) / 2 * 2;
-				pData1->Data[1] = sTxt16.size() * 2;
+				pData1->Data[1] = static_cast<u32>(sTxt16.size()) * 2;
 				if (sTxt16.size() <= uSize)
 				{
 					memcpy(pTxt16, sTxt16.c_str(), sTxt16.size() * 2);
@@ -646,7 +646,7 @@ int UMain(int argc, UChar* argv[])
 					return 1;
 				}
 				uSize = (uSize + 1) / 2 * 2;
-				pData1->Data[3] = sTxt16.size() * 2;
+				pData1->Data[3] = static_cast<u32>(sTxt16.size()) * 2;
 				if (sTxt16.size() <= uSize)
 				{
 					memcpy(pTxt16, sTxt16.c_str(), sTxt16.size() * 2);

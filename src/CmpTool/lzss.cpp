@@ -139,7 +139,7 @@ bool CLzss::Compress(const u8* a_pUncompressed, u32 a_uUncompressedSize, u8* a_p
 				int nSize = insertNode(&info, nBufferPos, nPos);
 				if (nSize > a_pUncompressed + a_uUncompressedSize - pSrc)
 				{
-					nSize = a_pUncompressed + a_uUncompressedSize - pSrc;
+					nSize = static_cast<n32>(a_pUncompressed + a_uUncompressedSize - pSrc);
 				}
 				if (nSize < s_nThreshold)
 				{
