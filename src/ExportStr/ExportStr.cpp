@@ -251,25 +251,45 @@ int exportStr(u32 a_uIndex, wstring& a_sTxt, FILE* a_fp, FILE* a_fpOuter, FILE* 
 	{
 		a_sTxt = regex_replace(a_sTxt, rABIL, wstring(L"<ABIL$1>"));
 	}
+	if (a_sTxt.find(L"@ABIL") != wstring::npos)
+	{
+		return 1;
+	}
 	static wregex rCOL(L"@COL(\\d)", regex_constants::ECMAScript);
 	if (regex_search(a_sTxt, rCOL))
 	{
 		a_sTxt = regex_replace(a_sTxt, rCOL, wstring(L"<COL$1>"));
 	}
 	a_sTxt = Replace(a_sTxt, L"@COLD", L"</COL>");
+	if (a_sTxt.find(L"@COL") != wstring::npos)
+	{
+		return 1;
+	}
 	a_sTxt = Replace(a_sTxt, L"@CECN", L"<CECN>");
 	static wregex rCHAR(L"@CHAR(\\[[0-9A-Z]{5}\\])", regex_constants::ECMAScript);
 	if (regex_search(a_sTxt, rCHAR))
 	{
 		a_sTxt = regex_replace(a_sTxt, rCHAR, wstring(L"<CHAR$1>"));
 	}
+	if (a_sTxt.find(L"@CHAR") != wstring::npos)
+	{
+		return 1;
+	}
 	a_sTxt = Replace(a_sTxt, L"@ITEM%05d", L"<ITEM%05d>");
 	a_sTxt = Replace(a_sTxt, L"@ITEM2424", L"<ITEM2424>");
+	if (a_sTxt.find(L"@ITEM") != wstring::npos)
+	{
+		return 1;
+	}
 	a_sTxt = Replace(a_sTxt, L"@MBIG", L"<MBIG>");
 	static wregex rSKIL(L"@SKIL(\\d{4})", regex_constants::ECMAScript);
 	if (regex_search(a_sTxt, rSKIL))
 	{
 		a_sTxt = regex_replace(a_sTxt, rSKIL, wstring(L"<SKIL$1>"));
+	}
+	if (a_sTxt.find(L"@SKIL") != wstring::npos)
+	{
+		return 1;
 	}
 	a_sTxt = Replace(a_sTxt, L"@WSHK", L"<WSHK>");
 	vector<wstring> vStmt = RegexSplitWith(a_sTxt, L"<p>");
@@ -396,38 +416,11 @@ int UMain(int argc, UChar* argv[])
 		delete[] pStr;
 		return 1;
 	}
-	fp = UFopen(argv[2], USTR("wb"), false);
-	if (fp == nullptr)
-	{
-		delete[] pStr;
-		return 1;
-	}
-	fwrite("\xFF\xFE", 2, 1, fp);
-	FILE* fpOuter = UFopen(argv[3], USTR("wb"), false);
-	if (fpOuter == nullptr)
-	{
-		fclose(fp);
-		delete[] pStr;
-		return 1;
-	}
-	fwrite("\xFF\xFE", 2, 1, fpOuter);
-	FILE* fpInner = UFopen(argv[4], USTR("wb"), false);
-	if (fpInner == nullptr)
-	{
-		fclose(fpOuter);
-		fclose(fp);
-		delete[] pStr;
-		return 1;
-	}
-	fwrite("\xFF\xFE", 2, 1, fpInner);
 	U16String sTxt16;
 	for (u32 j = 0; j < uStrSize; j++)
 	{
 		if (pStr[j] == '<' && j + 2 < uStrSize && pStr[j + 1] == 'p' && pStr[j + 2] == '>')
 		{
-			fclose(fpInner);
-			fclose(fpOuter);
-			fclose(fp);
 			delete[] pStr;
 			return 1;
 		}
@@ -440,18 +433,38 @@ int UMain(int argc, UChar* argv[])
 			sTxt16.append(1, pStr[j]);
 		}
 	}
+	delete[] pStr;
 	wstring sTxt = U16ToW(sTxt16);
+	fp = UFopen(argv[2], USTR("wb"), false);
+	if (fp == nullptr)
+	{
+		return 1;
+	}
+	fwrite("\xFF\xFE", 2, 1, fp);
+	FILE* fpOuter = UFopen(argv[3], USTR("wb"), false);
+	if (fpOuter == nullptr)
+	{
+		fclose(fp);
+		return 1;
+	}
+	fwrite("\xFF\xFE", 2, 1, fpOuter);
+	FILE* fpInner = UFopen(argv[4], USTR("wb"), false);
+	if (fpInner == nullptr)
+	{
+		fclose(fpOuter);
+		fclose(fp);
+		return 1;
+	}
+	fwrite("\xFF\xFE", 2, 1, fpInner);
 	if (exportStr(0, sTxt, fp, fpOuter, fpInner) != 0)
 	{
 		fclose(fpInner);
 		fclose(fpOuter);
 		fclose(fp);
-		delete[] pStr;
 		return 1;
 	}
 	fclose(fpInner);
 	fclose(fpOuter);
 	fclose(fp);
-	delete[] pStr;
 	return 0;
 }

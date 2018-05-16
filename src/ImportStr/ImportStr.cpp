@@ -94,10 +94,18 @@ int importStr(u32 a_uIndex, wstring& a_sTxt, wstring& a_sOuter, wstring& a_sInne
 	{
 		sOuterStmt = regex_replace(sOuterStmt, rABIL, wstring(L"@ABIL$1"));
 	}
+	if (sOuterStmt.find(L"<ABIL") != wstring::npos)
+	{
+		return 1;
+	}
 	static wregex rCOL(L"<COL(\\d)>", regex_constants::ECMAScript);
 	if (regex_search(sOuterStmt, rCOL))
 	{
 		sOuterStmt = regex_replace(sOuterStmt, rCOL, wstring(L"@COL$1"));
+	}
+	if (sOuterStmt.find(L"<COL") != wstring::npos)
+	{
+		return 1;
 	}
 	sOuterStmt = Replace(sOuterStmt, L"</COL>", L"@COLD");
 	sOuterStmt = Replace(sOuterStmt, L"<CECN>", L"@CECN");
@@ -106,13 +114,25 @@ int importStr(u32 a_uIndex, wstring& a_sTxt, wstring& a_sOuter, wstring& a_sInne
 	{
 		sOuterStmt = regex_replace(sOuterStmt, rCHAR, wstring(L"@CHAR$1"));
 	}
+	if (sOuterStmt.find(L"<CHAR") != wstring::npos)
+	{
+		return 1;
+	}
 	sOuterStmt = Replace(sOuterStmt, L"<ITEM%05d>", L"@ITEM%05d");
 	sOuterStmt = Replace(sOuterStmt, L"<ITEM2424>", L"@ITEM2424");
+	if (sOuterStmt.find(L"<ITEM") != wstring::npos)
+	{
+		return 1;
+	}
 	sOuterStmt = Replace(sOuterStmt, L"<MBIG>", L"@MBIG");
 	static wregex rSKIL(L"<SKIL(\\d{4})>", regex_constants::ECMAScript);
 	if (regex_search(sOuterStmt, rSKIL))
 	{
 		sOuterStmt = regex_replace(sOuterStmt, rSKIL, wstring(L"@SKIL$1"));
+	}
+	if (sOuterStmt.find(L"<SKIL") != wstring::npos)
+	{
+		return 1;
 	}
 	sOuterStmt = Replace(sOuterStmt, L"<WSHK>", L"@WSHK");
 	sOuterStmt = Replace(sOuterStmt, L"\r\n", L"\n");
@@ -213,13 +233,8 @@ int UMain(int argc, UChar* argv[])
 	pTemp[uTxtSize] = 0;
 	wstring sInner = U16ToW(pTemp + 1);
 	delete[] pTemp;
-	fp = UFopen(argv[1], USTR("wb"), false);
-	if (fp == nullptr)
-	{
-		return 1;
-	}
-	U16String sStmt16;
-	if (importStr(0, sTxt, sOuter, sInner, sStmt16) != 0)
+	U16String sTxt16;
+	if (importStr(0, sTxt, sOuter, sInner, sTxt16) != 0)
 	{
 		return 1;
 	}
@@ -228,7 +243,7 @@ int UMain(int argc, UChar* argv[])
 	{
 		return 1;
 	}
-	fwrite(sStmt16.c_str(), 2, sStmt16.size(), fp);
+	fwrite(sTxt16.c_str(), 2, sTxt16.size(), fp);
 	fclose(fp);
 	return 0;
 }

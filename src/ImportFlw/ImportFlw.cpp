@@ -128,10 +128,18 @@ int importStr(u32 a_uIndex, wstring& a_sTxt, wstring& a_sOuter, wstring& a_sInne
 	{
 		sOuterStmt = regex_replace(sOuterStmt, rABIL, wstring(L"@ABIL$1"));
 	}
+	if (sOuterStmt.find(L"<ABIL") != wstring::npos)
+	{
+		return 1;
+	}
 	static wregex rCOL(L"<COL(\\d)>", regex_constants::ECMAScript);
 	if (regex_search(sOuterStmt, rCOL))
 	{
 		sOuterStmt = regex_replace(sOuterStmt, rCOL, wstring(L"@COL$1"));
+	}
+	if (sOuterStmt.find(L"<COL") != wstring::npos)
+	{
+		return 1;
 	}
 	sOuterStmt = Replace(sOuterStmt, L"</COL>", L"@COLD");
 	sOuterStmt = Replace(sOuterStmt, L"<CECN>", L"@CECN");
@@ -140,13 +148,25 @@ int importStr(u32 a_uIndex, wstring& a_sTxt, wstring& a_sOuter, wstring& a_sInne
 	{
 		sOuterStmt = regex_replace(sOuterStmt, rCHAR, wstring(L"@CHAR$1"));
 	}
+	if (sOuterStmt.find(L"<CHAR") != wstring::npos)
+	{
+		return 1;
+	}
 	sOuterStmt = Replace(sOuterStmt, L"<ITEM%05d>", L"@ITEM%05d");
 	sOuterStmt = Replace(sOuterStmt, L"<ITEM2424>", L"@ITEM2424");
+	if (sOuterStmt.find(L"<ITEM") != wstring::npos)
+	{
+		return 1;
+	}
 	sOuterStmt = Replace(sOuterStmt, L"<MBIG>", L"@MBIG");
 	static wregex rSKIL(L"<SKIL(\\d{4})>", regex_constants::ECMAScript);
 	if (regex_search(sOuterStmt, rSKIL))
 	{
 		sOuterStmt = regex_replace(sOuterStmt, rSKIL, wstring(L"@SKIL$1"));
+	}
+	if (sOuterStmt.find(L"<SKIL") != wstring::npos)
+	{
+		return 1;
 	}
 	sOuterStmt = Replace(sOuterStmt, L"<WSHK>", L"@WSHK");
 	sOuterStmt = Replace(sOuterStmt, L"<r>", L"\r");
@@ -253,16 +273,11 @@ int UMain(int argc, UChar* argv[])
 	}
 	if (pFlwHeader->Unknown2Offset != 0)
 	{
-		if (0x24 + pFlwHeader->Unknown2Offset < uOffset)
+		if (static_cast<u32>(reinterpret_cast<u8*>(&pFlwHeader->Unknown2Offset) - reinterpret_cast<u8*>(pFlwHeader)) + pFlwHeader->Unknown2Offset < uOffset)
 		{
-			uOffset = 0x24 + pFlwHeader->Unknown2Offset;
+			uOffset = static_cast<u32>(reinterpret_cast<u8*>(&pFlwHeader->Unknown2Offset) - reinterpret_cast<u8*>(pFlwHeader)) + pFlwHeader->Unknown2Offset;
 		}
 		u8* pUnknown2 = pFlw + (reinterpret_cast<u8*>(&pFlwHeader->Unknown2Offset) - reinterpret_cast<u8*>(pFlwHeader)) + pFlwHeader->Unknown2Offset;
-		if (pFlw + uFlwSize < pUnknown2 + 16)
-		{
-			delete[] pFlw;
-			return 1;
-		}
 		if (*reinterpret_cast<u32*>(pUnknown2) != 0)
 		{
 			delete[] pFlw;
@@ -398,7 +413,7 @@ int UMain(int argc, UChar* argv[])
 		switch (pData1->Data[0])
 		{
 		case 0x1:
-			if (uOffset1 - uOffset0 > 12 && pData1->Data[1] % 2 == 0 && pData1->Data[2] == 4 && (12 + pData1->Data[1] == uOffset1 - uOffset0 || 12 + pData1->Data[1] == uOffset1 - uOffset0 - 2) && 8 + pData1->Data[2] + pData1->Data[1] <= uFlwSize)
+			if (uOffset1 - uOffset0 > 12 && pData1->Data[1] % 2 == 0 && pData1->Data[2] == 4 && uOffset1 == static_cast<u32>(Align(uOffset0 + 8 + pData1->Data[2] + pData1->Data[1], 4)))
 			{
 				Char16_t* pTxt16 = reinterpret_cast<Char16_t*>(reinterpret_cast<u8*>(pData1) + 8 + pData1->Data[2]);
 				u32 uSize = pData1->Data[1] / 2;
@@ -453,14 +468,14 @@ int UMain(int argc, UChar* argv[])
 				}
 				else
 				{
-					pData1->Data[2] = uFlwSizeCurrent - (8 + uOffset0);
+					pData1->Data[2] = uFlwSizeCurrent - (uOffset0 + 8);
 					fwrite(sTxt16.c_str(), 2, (sTxt16.size() + 1) / 2 * 2, fp);
 					uFlwSizeCurrent = ftell(fp);
 				}
 			}
 			break;
 		case 0x2:
-			if (uOffset1 - uOffset0 > 12 && pData1->Data[1] % 2 == 0 && pData1->Data[2] == 4 && (12 + pData1->Data[1] == uOffset1 - uOffset0 || 12 + pData1->Data[1] == uOffset1 - uOffset0 - 2) && 8 + pData1->Data[2] + pData1->Data[1] <= uFlwSize)
+			if (uOffset1 - uOffset0 > 12 && pData1->Data[1] % 2 == 0 && pData1->Data[2] == 4 && uOffset1 == static_cast<u32>(Align(uOffset0 + 8 + pData1->Data[2] + pData1->Data[1], 4)))
 			{
 				Char16_t* pTxt16 = reinterpret_cast<Char16_t*>(reinterpret_cast<u8*>(pData1) + 8 + pData1->Data[2]);
 				u32 uSize = pData1->Data[1] / 2;
@@ -515,14 +530,14 @@ int UMain(int argc, UChar* argv[])
 				}
 				else
 				{
-					pData1->Data[2] = uFlwSizeCurrent - (8 + uOffset0);
+					pData1->Data[2] = uFlwSizeCurrent - (uOffset0 + 8);
 					fwrite(sTxt16.c_str(), 2, (sTxt16.size() + 1) / 2 * 2, fp);
 					uFlwSizeCurrent = ftell(fp);
 				}
 			}
 			break;
 		case 0x3:
-			if (uOffset1 - uOffset0 > 12 && pData1->Data[1] % 2 == 0 && pData1->Data[2] == 4 && (12 + pData1->Data[1] == uOffset1 - uOffset0 || 12 + pData1->Data[1] == uOffset1 - uOffset0 - 2) && 8 + pData1->Data[2] + pData1->Data[1] <= uFlwSize)
+			if (uOffset1 - uOffset0 > 12 && pData1->Data[1] % 2 == 0 && pData1->Data[2] == 4 && uOffset1 == static_cast<u32>(Align(uOffset0 + 8 + pData1->Data[2] + pData1->Data[1], 4)))
 			{
 				Char16_t* pTxt16 = reinterpret_cast<Char16_t*>(reinterpret_cast<u8*>(pData1) + 8 + pData1->Data[2]);
 				u32 uSize = pData1->Data[1] / 2;
@@ -577,7 +592,7 @@ int UMain(int argc, UChar* argv[])
 				}
 				else
 				{
-					pData1->Data[2] = uFlwSizeCurrent - (8 + uOffset0);
+					pData1->Data[2] = uFlwSizeCurrent - (uOffset0 + 8);
 					fwrite(sTxt16.c_str(), 2, (sTxt16.size() + 1) / 2 * 2, fp);
 					uFlwSizeCurrent = ftell(fp);
 				}
@@ -654,7 +669,7 @@ int UMain(int argc, UChar* argv[])
 				}
 				else
 				{
-					pData1->Data[5] = uFlwSizeCurrent - (0x14 + uOffset0);
+					pData1->Data[5] = uFlwSizeCurrent - (uOffset0 + 0x14);
 					fwrite(sTxt16.c_str(), 2, (sTxt16.size() + 1) / 2 * 2, fp);
 					uFlwSizeCurrent = ftell(fp);
 				}
@@ -675,7 +690,7 @@ int UMain(int argc, UChar* argv[])
 					return 1;
 				}
 				Char16_t* pTxt16 = reinterpret_cast<Char16_t*>(reinterpret_cast<u8*>(pData1) + 0xC + pData1->Data[3]);
-				u32 uSize = (uOffset1 - uOffset0 - 16) / 2;
+				u32 uSize = (uOffset1 - uOffset0 - 0xC - pData1->Data[3]) / 2;
 				if (uSize == 0)
 				{
 					break;
@@ -686,12 +701,9 @@ int UMain(int argc, UChar* argv[])
 					delete[] pFlw;
 					return 1;
 				}
-				uSize = (uFlwSize - uOffset0 - 16) / 2;
 				U16String sTxt16;
-				u32 uSizeOld = 0;
 				for (u32 j = 0; ; j++)
 				{
-					uSizeOld++;
 					if (pTxt16[j] == '<' && j + 2 < uSize && pTxt16[j + 1] == 'p' && pTxt16[j + 2] == '>')
 					{
 						fclose(fp);
@@ -700,22 +712,6 @@ int UMain(int argc, UChar* argv[])
 					}
 					if (pTxt16[j] == 0)
 					{
-						//if (j != uSize - 2 && j != uSize - 1)
-						//{
-						//	fclose(fp);
-						//	delete[] pFlw;
-						//	return 1;
-						//}
-						//if (j == uSize - 2 && pTxt16[j + 1] != 0)
-						//{
-						//	fclose(fp);
-						//	delete[] pFlw;
-						//	return 1;
-						//}
-						//if (j == uSize - 1)
-						//{
-						//	sTxt16.append(WToU16(L"<p>"));
-						//}
 						sTxt16.append(WToU16(L"<p>"));
 						break;
 					}
@@ -730,7 +726,7 @@ int UMain(int argc, UChar* argv[])
 					delete[] pFlw;
 					return 1;
 				}
-				uSize = (uSizeOld + 1) / 2 * 2;
+				uSize = (uSize + 1) / 2 * 2;
 				if (sTxt16.size() <= uSize)
 				{
 					memcpy(pTxt16, sTxt16.c_str(), sTxt16.size() * 2);
@@ -738,7 +734,7 @@ int UMain(int argc, UChar* argv[])
 				}
 				else
 				{
-					pData1->Data[3] = uFlwSizeCurrent - (0xC + uOffset0);
+					pData1->Data[3] = uFlwSizeCurrent - (uOffset0 + 0xC);
 					fwrite(sTxt16.c_str(), 2, (sTxt16.size() + 1) / 2 * 2, fp);
 					uFlwSizeCurrent = ftell(fp);
 				}
